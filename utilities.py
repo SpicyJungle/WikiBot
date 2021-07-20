@@ -57,7 +57,6 @@ def genHyperLinks(item, url):
     try:
         if item.get('href') == None:
             string = f"{item.string}"
-            print(type(string))
         else:
             string = f"[{str(item.string)}]({url}{item.get('href')})"
     except AttributeError:
