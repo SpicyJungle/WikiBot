@@ -10,10 +10,6 @@ import utilities
 import search
 import Levenshtein
 import checks
-import topgg
-
-dbl_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxNzk0MTM1OTA0MTMxNDg0NiIsImJvdCI6dHJ1ZSwiaWF0IjoxNjI1OTcwNDI1fQ.Z8qoSOCMCrWwip9KvWkSGuhKti6W_YjDEARhH_DcQog'
-
 
 TKNS = [
     "ODE4OTM5Mjg3NDE2MzQwNDgx.YEfWpQ.1qdC24QuWANQ5MnzDByBk8VCEhA"
@@ -24,20 +20,11 @@ intents = discord.Intents.default()
 intents.members = True
 intents.typing = False
 
-bot = commands.Bot(command_prefix="wiki ", case_insensitive=True, intents=intents)
+bot = commands.Bot(command_prefix="wikib ", case_insensitive=True, intents=intents)
 bot.remove_command("help")
 
 colors = ["5dfdcb", "90d7ff", "ffb8d1", "2667FF", "F4D06F"]
 nsfwKeywords = ["cock", "vagina", "porn", "nude", "sex", "testicle", "breast", "penis", "anus", "anal", "sexual", "kink", "horny", "dick", "cock", "pornography", "masturbate", "orgasm", "tits"]
-
-bot.topgg_webhook = topgg.WebhookManager(bot).dbl_webhook("/dblwebhook", "passcode")
-bot.topgg_webhook.run(5000)
-
-
-@bot.event
-async def on_dbl_test(data):
-    """An event that is called whenever someone tests the webhook system for your bot on Top.gg."""
-    print(f"Received a test vote:\n{data}")
 
 
 @bot.event
@@ -97,7 +84,7 @@ async def helpCMD(ctx):
 @bot.command(aliases=["stats"])
 async def botStats(ctx):
     embed=discord.Embed(title="WikiBot Statistics and information!", description=f"""
-    Prefix: **wiki **
+    Prefix: `wiki `
     Guilds: **{len(bot.guilds)}**
     Supported wikis: **6**
     Dev: **SpicyJungle#1111**
@@ -110,9 +97,8 @@ async def botStats(ctx):
 
 @bot.command(name="terraria", aliases=['t'])
 async def fetchTerrariaWiki(ctx, *, args):
-    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=0xff0000)
+    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=int("a5ffa5", 16))
     msg = await ctx.send(embed=embed)
-
 
     wikiItem = ""
     for word in args: wikiItem += word
@@ -125,8 +111,7 @@ async def fetchTerrariaWiki(ctx, *, args):
     paragraphs = paraTag.find_all("p")
 
     irrelevantAlts = ["Rarity level: " ,"Switch version", "Xbox One", "PS4", "Desktop, Console, Old-gen console, and Mobile versions", "CC BY-NC-SA 3.0", "Powered by MediaWiki", "Button See Issues", "Desktop version", "Mobile version", "This page is protected from being edited by unregistered or new users.", "Desktop, Console, and Mobile versions"]
-    #foundRelevantImage = False
-    allDecent = []
+    allDecentImages = []
     mostRelevant = None
     highestRelevancy = 100
     imgSrc = paraTag.find_all("img")
@@ -135,16 +120,16 @@ async def fetchTerrariaWiki(ctx, *, args):
         if image.get("alt") in irrelevantAlts: continue
         relevancy = Levenshtein.distance(str(image.get("alt")), str(cleanPageData.title.contents[0].replace(" - The Official Terraria Wiki", "")))
         if relevancy < 5:
-            allDecent.append(image)
+            allDecentImages.append(image)
 
         if relevancy < highestRelevancy:
             mostRelevant = image
             highestRelevancy = relevancy
 
-    if len(allDecent) == 0:
+    if len(allDecentImages) == 0:
         chosenImage = mostRelevant
     else:
-        chosenImage = random.choice(allDecent)
+        chosenImage = random.choice(allDecentImages)
     imgSrc = "" + chosenImage["src"]
 	
     imgSrc = imgSrc[0]["src"]
@@ -155,12 +140,9 @@ async def fetchTerrariaWiki(ctx, *, args):
             continue
 
         else:
-            isBig = False
             for tag in p.children:
                 if tag.name == "big":
-                    isBig = True
-
-            if isBig: continue
+                    continue 
 
             for item in p.contents:
                 if type(item) == bs4.NavigableString:
@@ -195,16 +177,16 @@ async def fetchTerrariaWiki(ctx, *, args):
     await msg.edit(embed=embed)
 
 
-@fetchTerrariaWiki.error
+#fetchTerrariaWiki.error
 async def terraria_error(ctx, error):
     print(error)
-    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=0xff0000)
+    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=int("a5ffa5", 16))
     await ctx.send(embed=embed)
 
 
 @bot.command(name="minecraft", aliases=['mc'])
 async def fetchMinecraftWiki(ctx, *, args):
-    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=0xff0000)
+    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=int("a5ffa5", 16))
     msg = await ctx.send(embed=embed)
 
 
@@ -212,7 +194,7 @@ async def fetchMinecraftWiki(ctx, *, args):
     for word in args: wikiItem += word
     wikiItem = wikiItem.replace(" ", '_')
 
-    pageData = requests.get(f"https://minecraft.gamepedia.com/{wikiItem}")
+    pageData = requests.get(f"https://minecraft.fandom.com/{wikiItem}")
     cleanPageData = bs4.BeautifulSoup(pageData.text, 'html.parser')
 
     paraTag = cleanPageData.find(class_="mw-parser-output")
@@ -222,12 +204,15 @@ async def fetchMinecraftWiki(ctx, *, args):
     foundRelevantImage = False
     imgSrc = cleanPageData.find_all("img")
     for image in imgSrc:
-        if image.get("alt") in irrelevantAlts or int(image.get("width")) < 48:
-            continue
-        else:
-            foundRelevantImage = True
-            imgSrc = "" + image["src"]
-
+        try:
+            if image.get("alt") in irrelevantAlts or int(image.get("width")) < 48:
+                continue
+            else:
+                foundRelevantImage = True
+                imgSrc = "" + image["src"]
+        except:
+            pass
+        
     if not foundRelevantImage:
         imgSrc = None
 
@@ -253,26 +238,19 @@ async def fetchMinecraftWiki(ctx, *, args):
                         if "nowrap" in item.get("class"): continue
                     except TypeError:
                         pass
-                    intro = intro + utilities.genHyperLinks(item, "https://minecraft.gamepedia.com")
+                    intro = intro + utilities.genHyperLinks(item, "https://minecraft.fandom.com")
 
             break
 
     embed = discord.Embed(title=cleanPageData.title.contents[0], description=intro,
-                          color=int(random.choice(colors), 16), url=f"https://minecraft.gamepedia.com/{wikiItem}")
+                          color=int(random.choice(colors), 16), url=f"https://minecraft.fandom.com/{wikiItem}")
     embed.set_image(url=imgSrc)
     await msg.edit(embed=embed)
 
 
-
-@fetchMinecraftWiki.error
-async def minecraft_error(ctx, error):
-    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=0xff0000)
-    await ctx.send(embed=embed)
-
-
 @bot.command(name="stardew valley", aliases=['sdv'])
 async def fetchSdvWiki(ctx, *, args):
-    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=0xff0000)
+    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=int("a5ffa5", 16))
     msg = await ctx.send(embed=embed)
 
 
@@ -280,7 +258,7 @@ async def fetchSdvWiki(ctx, *, args):
     for word in args: wikiItem += word
     wikiItem = wikiItem.replace(" ", '_')
 
-    pageData = requests.get(f"https://stardewvalleywiki.com/{wikiItem}")
+    pageData = requests.get(f"htwadstps://stardewvalleywiki.com/{wikiItem}")
     cleanPageData = bs4.BeautifulSoup(pageData.text, 'html.parser')
 
     paraTag = cleanPageData.find(class_="mw-parser-output")
@@ -364,16 +342,9 @@ async def fetchSdvWiki(ctx, *, args):
     await msg.edit(embed=embed)
 
 
-@fetchSdvWiki.error
-async def sdv_error(ctx, error):
-    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=0xff0000)
-    await ctx.send(embed=embed)
-    print(error)
-
-
 @bot.command(name="wikipedia", aliases=['wp'])
 async def fetchWikipedia(ctx, *, args):
-    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=0xff0000)
+    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=int("a5ffa5", 16))
     msg = await ctx.send(embed=embed)
 
 
@@ -396,27 +367,37 @@ async def fetchWikipedia(ctx, *, args):
         
         if p.parent.get("class") != ['mw-parser-output'] or p.contents == ['\n']:
             continue
+        if p.find("span", {"id": "coordinates"}):
+            continue
 
         else:
-            isBig = False
             for tag in p.children:
                 if tag.name == "big":
-                    isBig = True
+                    continue
 
-            if isBig: continue
-
-            odd = True
             for item in p.contents:
+                
+                try:
+                    if "rt-commentedText" in item.get("class"):
+                        pass
+                        item.find("span", {"id": 0})
+
+
+                except (TypeError, AttributeError) as es:
+                    pass
+                
+                
+
+
+
+
+
                 if type(item) == bs4.NavigableString:
-                    odd = False
-                else:
-                    odd = True
-                if odd:
-                    intro = intro + utilities.genHyperLinks(item, "https://en.wikipedia.org")
-                else:
                     intro = intro + str(item)
-                odd = not odd
+                else:
+                    intro = intro + utilities.genHyperLinks(item, "https://en.wikipedia.org")
             break
+
     nsfw = False
     for word in nsfwKeywords:
         if word in cleanPageData.title.contents[0]:
@@ -435,34 +416,37 @@ async def fetchWikipedia(ctx, *, args):
                                 color=int(random.choice(colors), 16))            
             await msg.edit(embed=embed)
             return
+
     embed = discord.Embed(title=cleanPageData.title.contents[0], description=intro,
                         color=int(random.choice(colors), 16), url=f"https://en.wikipedia.org/wiki/{wikiItem}")
     embed.set_image(url=imgSrc)
     await msg.edit(embed=embed)
 
 
-
-@fetchWikipedia.error
-async def wp_error(ctx, error):
+@bot.event
+async def on_command_error(ctx, error):
 
     if isinstance(error, commands.CommandInvokeError):
         error = error.original
 
     try: 
         if error.code == 50035:
-            embed = discord.Embed(title="", description="The page's first paragraph exceeded discord's message length limit. The bot will resolve this issue in the future.", color=0xff0000)
+            embed = discord.Embed(title="", description="The page's first paragraph exceeded discord's message length limit. The bot will resolve this issue in the future.", color=int("ffa5a5", 16))
             await ctx.send(embed=embed)
             return
     except AttributeError:
         pass
 
-    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=0xff0000)
+    error = getattr(error, 'original', error)
+    embed = discord.Embed(title="", description=error, color=int("ffa5a5", 16))
+    embed.set_author(name="That page couldn't be fetched...")
     await ctx.send(embed=embed)
     print(error)
 
+
 @bot.command(name="seaofthieves", aliases=['sot'])
 async def fetchSeaOfThieves(ctx, *, args):
-    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=0xff0000)
+    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=int(a5ffa5))
     msg = await ctx.send(embed=embed)
 
     wikiItem = ""
@@ -473,11 +457,9 @@ async def fetchSeaOfThieves(ctx, *, args):
     cleanPageData = bs4.BeautifulSoup(pageData.text, 'html.parser')
 
     paraTag = cleanPageData.find(class_="mw-parser-output")    
-
     paragraphs = paraTag.find_all("p")
 
-    imgSrc = paraTag.find("img")
-    imgSrc = imgSrc["src"]
+    imgSrc = paraTag.find("img")["src"]
 
     intro = ""
     for p in paragraphs:
@@ -487,23 +469,16 @@ async def fetchSeaOfThieves(ctx, *, args):
             continue
 
         else:
-            isBig = False
             for tag in p.children:
                 if tag.name == "big":
-                    isBig = True
+                    continue
 
-            if isBig: continue
 
-            odd = True
             for item in p.contents:
                 if type(item) == bs4.NavigableString:
-                    odd = False
-                else:
-                    odd = True
-                if odd:
-                    intro = intro + utilities.genHyperLinks(item, "https://seaofthieves.gamepedia.com")
-                else:
                     intro = intro + str(item)
+                else:
+                    intro = intro + utilities.genHyperLinks(item, "https://seaofthieves.gamepedia.com")
             break
 
     embed = discord.Embed(title=cleanPageData.title.contents[0], description=intro,
@@ -513,29 +488,9 @@ async def fetchSeaOfThieves(ctx, *, args):
     await msg.edit(embed=embed)
 
 
-
-@fetchSeaOfThieves.error
-async def sot_error(ctx, error):
-
-    if isinstance(error, commands.CommandInvokeError):
-        error = error.original
-
-    try: 
-        if error.code == 50035:
-            embed = discord.Embed(title="", description="The page's first paragraph exceeded discord's message length limit. The bot will resolve this issue in the future.", color=0xff0000)
-            await ctx.send(embed=embed)
-            return
-    except AttributeError:
-        pass
-
-    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=0xff0000)
-    await ctx.send(embed=embed)
-    print(error)
-
-
 @bot.command(name="WiiParty", aliases=['WiiP'])
 async def fetchWiiParty(ctx, *, args):
-    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=0xff0000)
+    embed = discord.Embed(title="Loading...", description="Please wait while I load the page...", color=int("a5ffa5", 16))
     msg = await ctx.send(embed=embed)
 
 
@@ -595,14 +550,6 @@ async def fetchWiiParty(ctx, *, args):
                           color=int(random.choice(colors), 16), url=f"https://wiisports.fandom.com/wiki/{wikiItem}")
     embed.set_image(url=imgSrc)
     await msg.edit(embed=embed)
-
-
-@fetchWiiParty.error
-async def wii_party_error(ctx, error):
-    embed = discord.Embed(title="", description="That page couldn't be fetched...", color=0xff0000)
-    await ctx.send(embed=embed)
-
-
 
 
 @bot.command(name = "search", aliases=["s"])
