@@ -5,13 +5,10 @@ import json
 import os
 from py_dotenv import read_dotenv
 
-with open("info.json") as f:
-    data = json.load(f)
-#TOKEN = data['token']
-
 dotEnvPath = os.path.join(os.path.dirname(__file__), '.env')
 read_dotenv(dotEnvPath)
 TOKEN = os.getenv('TOKEN')
+PREFIX = os.getenv('PREFIX')
 
 intents = discord.Intents.default()
 intents.members = True
