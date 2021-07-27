@@ -50,7 +50,6 @@ async def search(wiki, args):
     pageData = requests.get(url)
     cleanPageData = bs4.BeautifulSoup(pageData.text, 'html.parser')
     urls = []
-    #print(url)
     matches = cleanPageData.find_all(class_=wikiSearchResultClass[wiki])
     cleanMatches = []
     iterations = 0

@@ -1,10 +1,6 @@
 from discord.ext import commands, tasks, menus
 import discord
-import bs4
-import requests
-import random
-import utilities, search, checks
-import Levenshtein
+import utilities
 import json
 
 with open("info.json") as f:
