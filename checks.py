@@ -3,6 +3,7 @@
 import utilities
 import bs4
 
+ignoredTags = ["s"]
 
 def wiiPCheck(obj):
 
@@ -26,3 +27,18 @@ def wiiPCheck(obj):
         intro += str(obj)
 
     return intro
+
+
+def terrariaSpanCheck(obj):
+    intro = ""
+
+    for item in obj:
+        if type(item) == bs4.element.Tag:
+            if item.name in ignoredTags:
+                continue
+        if type(item) == bs4.element.NavigableString:
+            intro += item
+
+    return intro
+
+

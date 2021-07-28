@@ -32,7 +32,7 @@ async def on_ready():
     print("WikiBot online!")
     for guild in bot.guilds:
         print(guild.name)
-        print(guild.owner.name)
+        print(guild.owner)
 
 
 pagesDict = {
@@ -114,6 +114,7 @@ async def on_command_error(ctx, error):
     try: 
         if error.code == 50035:
             embed = discord.Embed(title="", description="The page's first paragraph exceeded discord's message length limit. The bot will resolve this issue in the future.", color=errorColor)
+            print(error)
             await ctx.send(embed=embed)
             return
     except AttributeError:

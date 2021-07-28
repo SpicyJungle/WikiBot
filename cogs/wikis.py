@@ -38,7 +38,8 @@ class WikiCog(commands.Cog):
         allDecentImages = []
         mostRelevant = None
         highestRelevancy = 100
-        imgSrc = paraTag.find_all("img")
+        srcs = cleanPageData.find_all("img")
+        imgSrc = utilities.findImage(srcs=srcs)
         
         '''
         for image in imgSrc:
@@ -58,7 +59,6 @@ class WikiCog(commands.Cog):
         imgSrc = "" + chosenImage["src"]
         '''
 
-        imgSrc = imgSrc[0]["src"]
         intro = ""
         for p in paragraphs:
 
@@ -75,6 +75,11 @@ class WikiCog(commands.Cog):
                         intro = intro + str(item)
                     else:
                         
+                        if item.name == "span":
+                            print("spanTagFound")
+                            intro += checks.terrariaSpanCheck(item)
+                            continue
+
                         if item.get("class") == ["eil"]:
                             thingToBeAdded = ""
                             for thing in item:
@@ -86,7 +91,6 @@ class WikiCog(commands.Cog):
 
                             intro += thingToBeAdded
                             continue
-                        
 
                         try:
                             if item.get("class")[0] == "eico":
@@ -116,21 +120,8 @@ class WikiCog(commands.Cog):
         paraTag = cleanPageData.find(class_="mw-parser-output")
         paragraphs = paraTag.find_all("p")
 
-        irrelevantAlts = ["Button See Issues", "Desktop version", "Mobile version", "This page is protected from being edited by unregistered or new users.", "Desktop, Console, and Mobile versions"]
-        foundRelevantImage = False
-        imgSrc = cleanPageData.find_all("img")
-        for image in imgSrc:
-            try:
-                if image.get("alt") in irrelevantAlts or int(image.get("width")) < 48:
-                    continue
-                else:
-                    foundRelevantImage = True
-                    imgSrc = "" + image["src"]
-            except:
-                pass
-            
-        if not foundRelevantImage:
-            imgSrc = None
+        srcs = cleanPageData.find_all("img")
+        imgSrc = utilities.findImage(srcs=srcs)
 
         intro = ""
         for p in paragraphs:
@@ -266,8 +257,9 @@ class WikiCog(commands.Cog):
         paraTag = cleanPageData.find(class_="mw-parser-output")
         paragraphs = paraTag.find_all("p")
 
-        imgSrc = paraTag.find("img")
-        imgSrc = "https://en.wikipedia.org/wiki/" + imgSrc["src"]
+        srcs = cleanPageData.find_all("img")
+        imgSrc = utilities.findImage(srcs=srcs)
+        imgSrc = "https:" + imgSrc
 
         intro = ""
         for p in paragraphs:
@@ -323,7 +315,7 @@ class WikiCog(commands.Cog):
 
         nsfw = False
         for word in nsfwKeywords:
-            if word in cleanPageData.title.contents[0]:
+            if word in cleanPageData.title.contents[0].lower():
                 nsfw = True
             else: continue
         
@@ -331,7 +323,6 @@ class WikiCog(commands.Cog):
             if ctx.channel.is_nsfw():
                 embed = discord.Embed(title=cleanPageData.title.contents[0], description=intro,
                                     color=int(random.choice(colors), 16), url=f"https://en.wikipedia.org/wiki/{wikiItem}")
-                embed.set_image(url=imgSrc)
                 await msg.edit(embed=embed)
                 return
             else:
@@ -418,7 +409,7 @@ class WikiCog(commands.Cog):
                     foundRelevantImage = True
                     imgSrc = "" + image["src"]
             except TypeError:
-                print("Image had no width")
+                pass
 
         if not foundRelevantImage:
             imgSrc = None
@@ -486,7 +477,6 @@ class WikiCog(commands.Cog):
             desc += f"\n `{loops}.` {item}"
 
         if len(links) == 0:
-
             embed = discord.Embed(description="No search results found.", color=errorColor)
             await ctx.send(embed=embed)
             return 
@@ -499,18 +489,27 @@ class WikiCog(commands.Cog):
         thisLink = links[int(msg.content)-1]
         
 
-        if wiki == "wp" or wiki == "wikipedia":
-            await self.fetchWikipedia(ctx=ctx, args=thisLink)
-        elif wiki == "mc" or wiki == "minecraft":
-            await self.fetchMinecraftWiki(ctx=ctx, args=thisLink)
-        elif wiki == "sot" or wiki == "seaofthieves":
-            await self.fetchSeaOfThieves(ctx=ctx, args=thisLink)
-        elif wiki == "sdv" or wiki == "stardewvalley":
-            await self.fetchSdvWiki(ctx=ctx, args=thisLink)
-        elif wiki == "t" or wiki == "terraria":
-            await self.fetchTerrariaWiki(ctx, args=thisLink)
-        elif wiki == "wiip" or wiki == "wiiparty":
-            await self.fetchWiiParty(ctx, args=thisLink)      
+        wikiFunctions = {
+            "wp": self.fetchWikipedia,
+            "mc": self.fetchMinecraftWiki,
+            "sot": self.fetchSeaOfThieves,
+            "sdv": self.fetchSdvWiki,
+            "t": self.fetchTerrariaWiki,
+            "wiip": self.fetchWiiParty,
+
+            "wikipedia": self.fetchWikipedia,
+            "minecraft": self.fetchMinecraftWiki,
+            "seaofthieves": self.fetchSeaOfThieves,
+            "stardewvalley": self.fetchSdvWiki,
+            "terraria": self.fetchTerrariaWiki,
+            "wiiparty": self.fetchWiiParty
+        }
+
+        try:
+            await wikiFunctions[wiki](ctx=ctx, args=thisLink)
+        except KeyError:
+            errorEmbed = discord.Embed(description="A `KeyError` ocurred.", color=errorColor)
+            await ctx.send(embed=errorEmbed)
 
 def setup(bot):
     bot.add_cog(WikiCog(bot))

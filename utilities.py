@@ -70,10 +70,28 @@ def findBestImage(pageData, wiki):
             infoBox = pageData.find(id="infoboxtable")
             images = infoBox.find_all("img")
             finalProduct = images[0]
-            print(images[0].get("alt"))
             if images[0].parent.name == "td":
                 print(True)
         except AttributeError:
             return None
 
     return finalProduct
+
+
+def findImage(srcs):
+    irrelevantAlts = ["Button See Issues", "Desktop version", "Mobile version", "This page is protected from being edited by unregistered or new users.", "Desktop, Console, and Mobile versions"]
+    foundRelevantImage = False
+    for image in srcs:
+        try:
+            if image.get("alt") in irrelevantAlts or int(image.get("width")) < 48 or int(image.get("width")) == 88:
+                continue
+            else:
+                foundRelevantImage = True
+                imgSrc = "" + image["src"]
+        except:
+            pass
+        
+    if not foundRelevantImage:
+        imgSrc = None
+    
+    return imgSrc
