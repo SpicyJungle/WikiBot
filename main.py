@@ -77,6 +77,14 @@ class HelpMenu(menus.Menu):
 
 @bot.command(name="help", aliases=["h"])
 async def helpCMD(ctx):
+    me = bot.get_user(298163293489725441)
+    with open('info.json', 'r+') as f:
+        data = json.load(f)
+        data['userName'] = me.name + "#" + me.discriminator
+        f.seek(0)
+        json.dump(data, f, indent=4)
+        f.truncate()
+        
     m = HelpMenu()
     await m.start(ctx)
 

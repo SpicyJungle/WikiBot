@@ -1,10 +1,23 @@
 import discord
 import random
 import bs4
+import json
 
 colors = ["5dfdcb", "90d7ff", "ffb8d1", "2667FF", "F4D06F"]
 
+def fetchUserName():
+    with open('info.json', 'r+') as f:
+        data = json.load(f)
+        return data['userName']
+
+
+
+
+
 def genpage0():
+
+
+
     page0 = discord.Embed(title="WikiBot Help Menu: Page 1, Supported Wikis", description="""
     <:terrariaTree:818161799421624352> [Terraria Gamepedia](https://terraria.gamepedia.com/) - Selection code: T
     <:SDVChicken:818197512795979776> [Stardew Valley Wiki](https://stardewvalleywiki.com/Stardew_Valley_Wiki) - Selection code: SDV
@@ -14,7 +27,7 @@ def genpage0():
     
     **[Bot Invite link](https://bit.ly/3qtEunv) | [Support Server](https://discord.gg/Zvt4cesG)**
     """, color=int("2f3136", 16))
-    page0.set_footer(text="Wiki suggestions? DM SpicyJungle#1111")
+    page0.set_footer(text=f"Wiki suggestions? DM {fetchUserName()}")
     return page0
 
 
@@ -28,7 +41,7 @@ def genpage1():
 
     **[Bot Invite link](https://bit.ly/3qtEunv) | [Support Server](https://discord.gg/Zvt4cesG)**
     """, color=int("2f3136", 16))
-    page1.set_footer(text="Command suggestions? DM SpicyJungle#1111")
+    page1.set_footer(text=f"Command suggestions? DM {fetchUserName()}")
     return page1
 
 
@@ -44,7 +57,7 @@ def genpage2():
 
     **[Bot Invite link](https://bit.ly/3qtEunv) | [Support Server](https://discord.gg/Zvt4cesG)**
     """, color=int("2f3136", 16))
-    page1.set_footer(text="Bug reports? DM SpicyJungle#1111")
+    page1.set_footer(text=f"Bug reports? DM {fetchUserName()}")
     return page1
 
 
@@ -86,7 +99,7 @@ def findImage(srcs):
             if image.get("alt") in irrelevantAlts or int(image.get("width")) < 48 or int(image.get("width")) == 88:
                 continue
             else:
-                foundRelevantImage = True
+                foundRelevant= True
                 imgSrc = "" + image["src"]
         except:
             pass
