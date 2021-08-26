@@ -91,20 +91,42 @@ def findBestImage(pageData, wiki):
     return finalProduct
 
 
-def findImage(srcs):
+def findImage(srcs, wiki):
+
+    defaultImages = {
+            "wp": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/128px-Wikipedia-logo-v2.svg.png",
+            "mc": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/90/Minecraft_Wiki_header.svg/revision/latest/scale-to-width-down/300?cb=20200525174016",
+            "sot": "https://static.wikia.nocookie.net/seaofthieves_gamepedia/images/7/76/WikiWhite.png/revision/latest/scale-to-width-down/350?cb=20170927135347",  
+            "sdv": "https://stardewvalleywiki.com/mediawiki/images/6/68/Main_Logo.png",
+            "t": "https://static.wikia.nocookie.net/terraria_gamepedia/images/e/e6/Site-logo.png/revision/latest?cb=20210601122638",
+            "wiip": "https://static.wikia.nocookie.net/w__/images/2/27/GB_Wii_WiiSports%281%29.jpg/revision/latest/scale-to-width-down/650?cb=20090524182626&path-prefix=wiisports",
+
+            "wikipedia": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/128px-Wikipedia-logo-v2.svg.png",
+            "minecraft": "https://static.wikia.nocookie.net/minecraft_gamepedia/images/9/90/Minecraft_Wiki_header.svg/revision/latest/scale-to-width-down/300?cb=20200525174016",
+            "seaofthieves": "https://static.wikia.nocookie.net/seaofthieves_gamepedia/images/7/76/WikiWhite.png/revision/latest/scale-to-width-down/350?cb=20170927135347",
+            "stardewvalley": "https://stardewvalleywiki.com/mediawiki/images/6/68/Main_Logo.png",
+            "terraria": "https://static.wikia.nocookie.net/terraria_gamepedia/images/e/e6/Site-logo.png/revision/latest?cb=20210601122638",
+            "wiiparty":    "https://static.wikia.nocookie.net/w__/images/2/27/GB_Wii_WiiSports%281%29.jpg/revision/latest/scale-to-width-down/650?cb=20090524182626&path-prefix=wiisports"
+    }
+
+
     irrelevantAlts = ["Button See Issues", "Desktop version", "Mobile version", "This page is protected from being edited by unregistered or new users.", "Desktop, Console, and Mobile versions"]
-    foundRelevantImage = False
+    foundRelevant = False
+    imgSrc = ""
     for image in srcs:
         try:
-            if image.get("alt") in irrelevantAlts or int(image.get("width")) < 48 or int(image.get("width")) == 88:
-                continue
-            else:
-                foundRelevant= True
-                imgSrc = "" + image["src"]
+            if image.get("src").startswith("http") or wiki in ["wikipedia"]:
+                if int(image.get('width')) > 48 and int(image.get('width')) != 88:
+                    if not image.get("alt") in irrelevantAlts:
+                        foundRelevant = True
+                        if wiki in ["wikipedia"]:
+                            imgSrc = "https:"
+
+                        imgSrc += image["src"]
         except:
             pass
         
-    if not foundRelevantImage:
-        imgSrc = None
+    if not foundRelevant:
+        imgSrc = defaultImages[wiki]
     
     return imgSrc

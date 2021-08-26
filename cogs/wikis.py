@@ -34,31 +34,12 @@ class WikiCog(commands.Cog):
         paraTag = cleanPageData.find(class_="mw-parser-output")
         paragraphs = paraTag.find_all("p")
 
-        irrelevantAlts = ["Rarity level: " ,"Switch version", "Xbox One", "PS4", "Desktop, Console, Old-gen console, and Mobile versions", "CC BY-NC-SA 3.0", "Powered by MediaWiki", "Button See Issues", "Desktop version", "Mobile version", "This page is protected from being edited by unregistered or new users.", "Desktop, Console, and Mobile versions"]
-        allDecentImages = []
-        mostRelevant = None
-        highestRelevancy = 100
         srcs = cleanPageData.find_all("img")
-        imgSrc = utilities.findImage(srcs=srcs)
+        print(srcs)
+        imgSrc = utilities.findImage(srcs=srcs, wiki="terraria")
+        if imgSrc == None:
+            imgSrc = "https://static.wikia.nocookie.net/terraria_gamepedia/images/e/e6/Site-logo.png/revision/latest?cb=20210601122638"
         
-        '''
-        for image in imgSrc:
-            if image.get("alt") in irrelevantAlts: continue
-            relevancy = Levenshtein.distance(str(image.get("alt")), str(cleanPageData.title.contents[0].replace(" - The Official Terraria Wiki", "")))
-            if relevancy < 5:
-                allDecentImages.append(image)
-
-            if relevancy < highestRelevancy:
-                mostRelevant = image
-                highestRelevancy = relevancy
-
-        if len(allDecentImages) == 0:
-            chosenImage = mostRelevant
-        else:
-            chosenImage = random.choice(allDecentImages)
-        imgSrc = "" + chosenImage["src"]
-        '''
-
         intro = ""
         for p in paragraphs:
 
@@ -121,7 +102,7 @@ class WikiCog(commands.Cog):
         paragraphs = paraTag.find_all("p")
 
         srcs = cleanPageData.find_all("img")
-        imgSrc = utilities.findImage(srcs=srcs)
+        imgSrc = utilities.findImage(srcs=srcs, wiki="minecraft")
 
         intro = ""
         for p in paragraphs:
@@ -130,12 +111,11 @@ class WikiCog(commands.Cog):
                 continue
 
             else:
-                isBig = False
+                
                 for tag in p.children:
                     if tag.name == "big":
-                        isBig = True
+                        continue
 
-                if isBig: continue
 
                 for item in p.contents:
                     if type(item) == bs4.NavigableString:
@@ -258,8 +238,8 @@ class WikiCog(commands.Cog):
         paragraphs = paraTag.find_all("p")
 
         srcs = cleanPageData.find_all("img")
-        imgSrc = utilities.findImage(srcs=srcs)
-        imgSrc = "https:" + imgSrc
+        imgSrc = utilities.findImage(srcs=srcs, wiki="wikipedia")
+
 
         intro = ""
         for p in paragraphs:
@@ -353,7 +333,7 @@ class WikiCog(commands.Cog):
         paraTag = cleanPageData.find(class_="mw-parser-output")    
         paragraphs = paraTag.find_all("p")
 
-        imgSrc = paraTag.find("img")["src"]
+        imgSrc = utilities.findImage(srcs=cleanPageData.find_all("img"), wiki="sot")
 
         intro = ""
         for p in paragraphs:

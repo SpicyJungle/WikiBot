@@ -1,3 +1,4 @@
+from importlib.util import decode_source
 from discord.ext import commands, tasks, menus
 import discord
 import utilities
@@ -115,8 +116,9 @@ async def cogReload(ctx):
     await ctx.send(embed=embed)
 
 
-@bot.event
+#@bot.event
 async def on_command_error(ctx, error):
+    OGERROR = error
     if isinstance(error, commands.CommandInvokeError):
         error = error.original
     try: 
@@ -136,7 +138,23 @@ async def on_command_error(ctx, error):
     try: embed = discord.Embed(title="", description=responses[str(error)], color=errorColor)
     except: embed = discord.Embed(title="", description=error, color=errorColor)
     embed.set_author(name="That page couldn't be fetched...")
+    embed.set_footer(text="This is likely a bug. WikiBot is still new, and is developed by a 1-man-team. It has been reported to the dev.")
+    
     await ctx.send(embed=embed)
+
+    errorEmbed = discord.Embed(title="Bug report!", description=f"""
+    {OGERROR}
+    \n
+    {error}
+    \n
+    {ctx.message.content}, {ctx.author}
+    """)
+    
+    logs = bot.get_channel(863379605246312488)
+    await logs.send(embed=errorEmbed)
+
+
+
 
 bot.run(TOKEN)
 
